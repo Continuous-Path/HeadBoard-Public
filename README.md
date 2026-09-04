@@ -1,7 +1,20 @@
-# Project HeadBoard
-Project HeadBoard helps gamers control their mouse cursor using their head movement and facial gestures.
+# HeadBoard
 
-This fork contains **HeadBoard** (`/HeadBoard/`), the Android app. The companion **OpenBoard** keyboard lives in its own repo: [Continuous-Path/OpenBoard-HB](https://github.com/Continuous-Path/OpenBoard-HB).
+HeadBoard lets you control an Android device with head movement and facial gestures,
+using the front-facing camera. It is built for people who cannot use a touchscreen in the
+ordinary way — moving the cursor by turning your head, and clicking with a gesture such as
+opening your mouth or raising an eyebrow.
+
+It is maintained by the [Continuous Path Foundation](https://github.com/Continuous-Path),
+a 501(c)(3) nonprofit, and works alongside two companions:
+
+- **[JustType](https://github.com/Continuous-Path/JustType)** — an accessibility keyboard
+  that HeadBoard can drive directly as a joystick.
+- **[OpenBoard-HB](https://github.com/Continuous-Path/OpenBoard-HB)** — a conventional
+  keyboard fork that accepts HeadBoard's injected pointer events, so you can swipe-type
+  with your head.
+
+The Android app lives in `/HeadBoard/`.
 
 
 # Model used
