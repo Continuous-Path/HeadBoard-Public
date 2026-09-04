@@ -1,0 +1,566 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.continuouspath.headboard;
+
+import static android.content.Context.RECEIVER_EXPORTED;
+
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.os.Build;
+import android.util.Log;
+
+import androidx.annotation.Nullable;
+import com.google.auto.value.AutoValue;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/** The blendshape event trigger config of the HeadBoard app. */
+public class BlendshapeEventTriggerConfig {
+  private static final String TAG = "BlendshapeEventTriggerConfig";
+  private static final int PREFERENCE_INT_NOT_FOUND = -1;
+
+  /** Persistent storage on device (Data/data/{app}) */
+  SharedPreferences sharedPreferences;
+
+  public static class EventDetails {
+    public EventType eventType;
+    public TriggerType triggerType;
+    public Blendshape blendshape;
+    public boolean isStartingEvent;
+
+    public EventDetails(EventType eventType, Blendshape blendshape, boolean isStartingEvent) {
+      this.eventType = eventType;
+      this.blendshape = blendshape;
+      this.isStartingEvent = isStartingEvent;
+      // Get the trigger type from the blendshape.
+      this.triggerType = BLENDSHAPE_TO_TRIGGER_TYPE.get(blendshape);
+    }
+
+    public EventDetails(EventType eventType, boolean isStartingEvent) {
+      this.eventType = eventType;
+      this.isStartingEvent = isStartingEvent;
+      this.triggerType = TriggerType.INTERNAL;
+    }
+
+    public EventDetails() {
+      this.eventType = EventType.NONE;
+      this.blendshape = Blendshape.NONE;
+      this.triggerType = TriggerType.NONE;
+    }
+  }
+
+  public enum TriggerType {
+    NONE,
+    INTERNAL, // Triggered by internal app logic.
+    GESTURE, // Triggered by facial gesture.
+    KEY_EVENT, // Triggered by key event from bluetooth switch, joystick, keyboard, controller, etc.
+  }
+
+  /**
+   * Events this app can create. such as touch, swipe or some button action. (created event will be
+   * dispatch in Accessibility service)
+   */
+  public enum EventType {
+    NONE,
+    CURSOR_TAP,
+    CURSOR_PAUSE,
+    CURSOR_RESET,
+    SWIPE_LEFT,
+    SWIPE_RIGHT,
+    SWIPE_UP,
+    SWIPE_DOWN,
+    DRAG_TOGGLE,
+    HOME,
+    BACK,
+    SHOW_NOTIFICATION,
+    SWIPE_START,
+    SWIPE_STOP,
+    SHOW_APPS,
+    TOGGLE_TOUCH,
+    CONTINUOUS_TOUCH,
+    CURSOR_LONG_TOUCH,
+    BEGIN_TOUCH,
+    END_TOUCH,
+    DELETE_PREVIOUS_WORD,
+    SMART_TOUCH,
+    JUSTTYPE_SWITCH_1,
+    JUSTTYPE_SWITCH_2,
+  }
+
+  // EventType string name used in title bar UI.
+  public static final HashMap<EventType, String> BEATIFY_EVENT_TYPE_NAME = new HashMap<EventType, String>() {{
+    put(EventType.NONE, "None");
+    put(EventType.CURSOR_TAP, "Tap");
+    put(EventType.CURSOR_PAUSE, "Pause / Unpause");
+    put(EventType.CURSOR_RESET, "Reset");
+    put(EventType.SWIPE_LEFT, "Swipe left");
+    put(EventType.SWIPE_RIGHT, "Swipe right");
+    put(EventType.SWIPE_UP, "Swipe up");
+    put(EventType.SWIPE_DOWN, "Swipe down");
+    put(EventType.DRAG_TOGGLE, "Drag toggle");
+    put(EventType.HOME, "Home");
+    put(EventType.BACK, "Back");
+    put(EventType.SHOW_NOTIFICATION, "Notification");
+    put(EventType.SHOW_APPS, "All apps");
+    put(EventType.TOGGLE_TOUCH, "Toggle touch");
+    put(EventType.CONTINUOUS_TOUCH, "Continuous touch");
+    put(EventType.CURSOR_LONG_TOUCH, "Long touch");
+    put(EventType.BEGIN_TOUCH, "Begin touch");
+    put(EventType.END_TOUCH, "End touch");
+    put(EventType.DELETE_PREVIOUS_WORD, "Delete previous word");
+    put(EventType.SMART_TOUCH, "Combined Tap");
+    put(EventType.JUSTTYPE_SWITCH_1, "JustType Switch 1");
+    put(EventType.JUSTTYPE_SWITCH_2, "JustType Switch 2");
+  }};
+
+  // String for display in the UI only.
+  public static final HashMap<Blendshape, String> BEAUTIFY_BLENDSHAPE_NAME = new HashMap<Blendshape, String>() {{
+    put(Blendshape.NONE, "No binding");
+    put(Blendshape.OPEN_MOUTH, "Open mouth");
+    put(Blendshape.MOUTH_LEFT, "Mouth left");
+    put(Blendshape.MOUTH_RIGHT, "Mouth right");
+    put(Blendshape.ROLL_LOWER_MOUTH, "Roll lower mouth");
+    put(Blendshape.RAISE_RIGHT_EYEBROW, "Raise right eyebrow");
+    put(Blendshape.RAISE_LEFT_EYEBROW, "Raise left eyebrow");
+    put(Blendshape.LOWER_RIGHT_EYEBROW, "Lower right eyebrow");
+    put(Blendshape.LOWER_LEFT_EYEBROW, "Lower left eyebrow");
+    put(Blendshape.KEY, "Switch / key");
+    put(Blendshape.LEGACY_SWITCH_TWO, "(legacy)");
+    put(Blendshape.LEGACY_SWITCH_THREE, "(legacy)");
+    put(Blendshape.SWIPE_FROM_RIGHT_KBD, "Swipe from right side of keyboard");
+  }};
+
+  // String for display in the UI only.
+  public static final HashMap<Blendshape, TriggerType> BLENDSHAPE_TO_TRIGGER_TYPE = new HashMap<Blendshape, TriggerType>() {{
+    put(Blendshape.NONE, null);
+    put(Blendshape.OPEN_MOUTH, TriggerType.GESTURE);
+    put(Blendshape.MOUTH_LEFT, TriggerType.GESTURE);
+    put(Blendshape.MOUTH_RIGHT, TriggerType.GESTURE);
+    put(Blendshape.ROLL_LOWER_MOUTH, TriggerType.GESTURE);
+    put(Blendshape.RAISE_RIGHT_EYEBROW, TriggerType.GESTURE);
+    put(Blendshape.RAISE_LEFT_EYEBROW, TriggerType.GESTURE);
+    put(Blendshape.LOWER_RIGHT_EYEBROW, TriggerType.GESTURE);
+    put(Blendshape.LOWER_LEFT_EYEBROW, TriggerType.GESTURE);
+    put(Blendshape.KEY, TriggerType.KEY_EVENT);
+    put(Blendshape.LEGACY_SWITCH_TWO, TriggerType.KEY_EVENT);
+    put(Blendshape.LEGACY_SWITCH_THREE, TriggerType.KEY_EVENT);
+    put(Blendshape.SWIPE_FROM_RIGHT_KBD, TriggerType.INTERNAL);
+  }};
+
+  public static final HashMap<EventType, Boolean> EVENT_TYPE_SHOULD_SHOW_SWIPING_INPUTS = new HashMap<EventType, Boolean>() {{
+    put(EventType.NONE, false);
+    put(EventType.CURSOR_TAP, false);
+    put(EventType.CURSOR_PAUSE, false);
+    put(EventType.CURSOR_RESET, false);
+    put(EventType.SWIPE_LEFT, false);
+    put(EventType.SWIPE_RIGHT, false);
+    put(EventType.SWIPE_UP, false);
+    put(EventType.SWIPE_DOWN, false);
+    put(EventType.DRAG_TOGGLE, false);
+    put(EventType.HOME, true);
+    put(EventType.BACK, true);
+    put(EventType.SHOW_NOTIFICATION, true);
+    put(EventType.SHOW_APPS, true);
+    put(EventType.TOGGLE_TOUCH, false);
+    put(EventType.CONTINUOUS_TOUCH, false);
+    put(EventType.CURSOR_LONG_TOUCH, false);
+    put(EventType.BEGIN_TOUCH, false);
+    put(EventType.END_TOUCH, false);
+    put(EventType.DELETE_PREVIOUS_WORD, true);
+    put(EventType.SMART_TOUCH, false);
+    put(EventType.JUSTTYPE_SWITCH_1, false);
+    put(EventType.JUSTTYPE_SWITCH_2, false);
+  }};
+
+  public static final HashMap<Blendshape, Boolean> BLENDSHAPE_IS_SWIPING_INPUT = new HashMap<Blendshape, Boolean>() {{
+    put(Blendshape.NONE, false);
+    put(Blendshape.OPEN_MOUTH, false);
+    put(Blendshape.MOUTH_LEFT, false);
+    put(Blendshape.MOUTH_RIGHT, false);
+    put(Blendshape.ROLL_LOWER_MOUTH, false);
+    put(Blendshape.RAISE_RIGHT_EYEBROW, false);
+    put(Blendshape.RAISE_LEFT_EYEBROW, false);
+    put(Blendshape.LOWER_RIGHT_EYEBROW, false);
+    put(Blendshape.LOWER_LEFT_EYEBROW, false);
+    put(Blendshape.KEY, false);
+    put(Blendshape.LEGACY_SWITCH_TWO, false);
+    put(Blendshape.LEGACY_SWITCH_THREE, false);
+    put(Blendshape.SWIPE_FROM_RIGHT_KBD, true);
+  }};
+
+  /** Allowed blendshape that our app can use and its array index (from MediaPipe's). */
+  public enum Blendshape {
+    // KEY means "triggered by a captured key/switch keycode" (the keycode lives in the
+    // <EVENT_TYPE>_keycode pref). Negative values keep these out of the MediaPipe gesture loop.
+    KEY(-11),
+    // Placeholders for the old fixed switches 2/3. They only exist so positions 9/10 of
+    // BLENDSHAPE_FROM_ORDER_IN_UI stay occupied — stored bindings are positional indices,
+    // so the list must never shrink or reorder. Never written after migration.
+    LEGACY_SWITCH_TWO(-22),
+    LEGACY_SWITCH_THREE(-33),
+    SWIPE_FROM_RIGHT_KBD(-2),
+    NONE(-1),
+    OPEN_MOUTH(25),
+    MOUTH_LEFT(39),
+    MOUTH_RIGHT(33),
+    ROLL_LOWER_MOUTH(40),
+    RAISE_LEFT_EYEBROW(5),
+    LOWER_LEFT_EYEBROW(2),
+    RAISE_RIGHT_EYEBROW(4),
+    LOWER_RIGHT_EYEBROW(1);
+    public final int value;
+
+    Blendshape(int index) {
+      this.value = index;
+    }
+  }
+
+  /** For converting blendshapeIndexInUI to Blendshape enum. */
+  protected static final List<Blendshape> BLENDSHAPE_FROM_ORDER_IN_UI = Stream.of(
+      Blendshape.OPEN_MOUTH, Blendshape.MOUTH_LEFT,
+      Blendshape.MOUTH_RIGHT, Blendshape.ROLL_LOWER_MOUTH,
+      Blendshape.RAISE_RIGHT_EYEBROW, Blendshape.RAISE_LEFT_EYEBROW,
+      Blendshape.LOWER_RIGHT_EYEBROW, Blendshape.LOWER_LEFT_EYEBROW,
+      Blendshape.KEY, Blendshape.LEGACY_SWITCH_TWO,
+      Blendshape.LEGACY_SWITCH_THREE, Blendshape.SWIPE_FROM_RIGHT_KBD,
+      Blendshape.NONE
+  ).collect(Collectors.toList());
+
+  /** Persisted index meaning "this action is triggered by a captured key" (== 8). */
+  public static final int KEY_INDEX_IN_UI = BLENDSHAPE_FROM_ORDER_IN_UI.indexOf(Blendshape.KEY);
+
+  /** Persisted index for the unbound state (Blendshape.NONE). */
+  public static final int NONE_INDEX_IN_UI = BLENDSHAPE_FROM_ORDER_IN_UI.indexOf(Blendshape.NONE);
+
+  /** Pref suffix holding the captured Android keycode for a key-triggered action. */
+  public static final String KEYCODE_SUFFIX = "_keycode";
+
+  @AutoValue
+  abstract static class BlendshapeAndThreshold {
+    /**
+     * Blendshape and its threshold value
+     *
+     * @param shape The blendshape target {@link Blendshape}.
+     * @param threshold The threshold for trigger some gesture.
+     * @return Value of blendshape event trigger.
+     */
+    static BlendshapeAndThreshold create(Blendshape shape, float threshold) {
+
+      return new AutoValue_BlendshapeEventTriggerConfig_BlendshapeAndThreshold(shape, threshold);
+    }
+
+    abstract Blendshape shape();
+
+    abstract float threshold();
+
+    /**
+     * Create BlendshapeAndThreshold from blendshape order in UI instead of {@link Blendshape}
+     *
+     * @param blendshapeIndexInUi Index of the blendshape in UI.
+     * @param threshold Range 0 - 1.0.
+     * @return BlendshapeAndThreshold.
+     */
+    @Nullable
+    public static BlendshapeAndThreshold createFromIndexInUi(
+        int blendshapeIndexInUi, float threshold) {
+      if ((blendshapeIndexInUi > BLENDSHAPE_FROM_ORDER_IN_UI.size()) || (blendshapeIndexInUi < 0)) {
+        Log.w(
+            TAG,
+            "Cannot create BlendshapeAndThreshold from blendshapeIndexInUi: "
+                + blendshapeIndexInUi);
+        return null;
+      }
+      Blendshape shape = BLENDSHAPE_FROM_ORDER_IN_UI.get(blendshapeIndexInUi);
+      return BlendshapeAndThreshold.create(shape, threshold);
+    }
+  }
+
+  public final HashMap<EventType, BlendshapeAndThreshold> configMap;
+
+  /**
+   * Stores event and Blendshape pair that will be triggered when the threshold is passed.
+   *
+   * @param context Context for open SharedPreference in device's local storage.
+   */
+  private BroadcastReceiver profileChangeReceiver;
+
+  @SuppressLint("UnspecifiedRegisterReceiverFlag")
+  public BlendshapeEventTriggerConfig(Context context) {
+    Log.i(TAG, "Create BlendshapeEventTriggerConfig.");
+    // Create or retrieve SharedPreference.
+    String profileName = ProfileManager.getCurrentProfile(context);
+    sharedPreferences = context.getSharedPreferences(profileName, Context.MODE_PRIVATE);
+
+    configMap = new HashMap<>();
+    updateAllConfigFromSharedPreference();
+
+    profileChangeReceiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        String profileName = ProfileManager.getCurrentProfile(context);
+        sharedPreferences = context.getSharedPreferences(profileName, Context.MODE_PRIVATE);
+        updateAllConfigFromSharedPreference();
+      }
+    };
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      context.registerReceiver(profileChangeReceiver, new IntentFilter("PROFILE_CHANGED"), RECEIVER_EXPORTED);
+    } else {
+      context.registerReceiver(profileChangeReceiver, new IntentFilter("PROFILE_CHANGED"));
+    }
+    updateProfile(context, ProfileManager.getCurrentProfile(context));
+  }
+
+  public void updateProfile(Context context, String profileName) {
+    sharedPreferences = context.getSharedPreferences(profileName, Context.MODE_PRIVATE);
+    updateAllConfigFromSharedPreference();
+  }
+
+  public void cleanup(Context context) {
+    context.unregisterReceiver(profileChangeReceiver);
+  }
+
+  /** Get every EventType-BlendshapeAndThreshold pairs. */
+  public HashMap<EventType, BlendshapeAndThreshold> getAllConfig() {
+    return configMap;
+  }
+
+  public void updateAllConfigFromSharedPreference() {
+    Log.i(TAG, "Update all config from local SharedPreference...");
+    for (EventType eventType : EventType.values()) {
+      updateOneConfigFromSharedPreference(eventType.name());
+    }
+  }
+
+  /**
+   * Update the face blendshape event trigger config from SharedPreference.
+   *
+   * @param eventTypeString String of {@link EventType} to update, such as "TOUCH" or "SWIPE_LEFT".
+   */
+  public void updateOneConfigFromSharedPreference(String eventTypeString) {
+    Log.i(TAG, "updateOneConfigFromSharedPreference: " + eventTypeString);
+
+    if (sharedPreferences == null) {
+      Log.w(TAG, "sharedPreferences instance does not exist.");
+      return;
+    }
+
+    EventType eventType;
+    try {
+      eventType = EventType.valueOf(eventTypeString);
+    } catch (IllegalArgumentException e) {
+      Log.w(TAG, eventTypeString + " not exist in EventType enum.");
+      return;
+    }
+
+    int blendshapeIndexInUi = sharedPreferences.getInt(eventTypeString, -1);
+    if (blendshapeIndexInUi == -1) {
+      Log.i(
+          TAG,
+          "Key " + eventTypeString + " not found in SharedPreference, keep using default value.");
+      return;
+    }
+
+    int thresholdInUi =
+        sharedPreferences.getInt(eventTypeString + "_size", PREFERENCE_INT_NOT_FOUND);
+    if (thresholdInUi == PREFERENCE_INT_NOT_FOUND) {
+      Log.w(TAG, "Cannot find " + eventTypeString + "_size" + " in SharedPreference.");
+      return;
+    }
+
+    float threshold = (float) thresholdInUi / 100.f;
+    BlendshapeAndThreshold blendshapeAndThreshold =
+        BlendshapeAndThreshold.createFromIndexInUi(blendshapeIndexInUi, threshold);
+
+    if (blendshapeAndThreshold != null) {
+      configMap.put(eventType, blendshapeAndThreshold);
+      Log.i(
+          TAG,
+          "Apply "
+              + eventType.name()
+              + " with value: "
+              + blendshapeAndThreshold.shape()
+              + " "
+              + blendshapeAndThreshold.threshold());
+    }
+  }
+
+  /**
+   * Write binding config to local sharedpref a
+   * nd also send broadcast to tell background service to update its config.
+   * @param blendshape What face gesture needed to perform.
+   * @param eventType What event action to trigger.
+   * @param thresholdInUI threshold in UI unit from 0 to 100.
+   */
+  static void writeBindingConfig(Context context, Blendshape blendshape, EventType eventType,
+      int thresholdInUI)
+  {
+    Log.i(TAG, "writeBindingConfig: " + blendshape.toString() +" "+ eventType.toString() + " " + thresholdInUI);
+
+    String profileName = ProfileManager.getCurrentProfile(context);
+    SharedPreferences preferences = context.getSharedPreferences(profileName, Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = preferences.edit();
+    editor.putInt(eventType.toString(), BLENDSHAPE_FROM_ORDER_IN_UI.indexOf(blendshape));
+    editor.putInt(eventType.toString()+"_size", thresholdInUI);
+    // Rebinding to a gesture must drop any captured keycode this action used to have.
+    editor.remove(eventType.toString() + KEYCODE_SUFFIX);
+    editor.apply();
+
+    notifyBindingChanged(context, eventType);
+  }
+
+  /**
+   * Bind a captured key/switch keycode to an action: index KEY_INDEX_IN_UI + the keycode.
+   */
+  static void writeKeyBindingConfig(Context context, EventType eventType, int keyCode) {
+    Log.i(TAG, "writeKeyBindingConfig: " + eventType + " keyCode " + keyCode);
+
+    String profileName = ProfileManager.getCurrentProfile(context);
+    SharedPreferences preferences = context.getSharedPreferences(profileName, Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = preferences.edit();
+    editor.putInt(eventType.toString(), KEY_INDEX_IN_UI);
+    editor.putInt(eventType.toString() + "_size", 0);
+    editor.putInt(eventType.toString() + KEYCODE_SUFFIX, keyCode);
+    editor.apply();
+
+    notifyBindingChanged(context, eventType);
+  }
+
+  /** Unbind an action entirely (back to NONE). */
+  static void clearBinding(Context context, EventType eventType) {
+    Log.i(TAG, "clearBinding: " + eventType);
+
+    String profileName = ProfileManager.getCurrentProfile(context);
+    SharedPreferences preferences = context.getSharedPreferences(profileName, Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = preferences.edit();
+    editor.putInt(eventType.toString(), NONE_INDEX_IN_UI);
+    editor.remove(eventType.toString() + "_size");
+    editor.remove(eventType.toString() + KEYCODE_SUFFIX);
+    editor.apply();
+
+    notifyBindingChanged(context, eventType);
+  }
+
+  /** Tell the service to refresh its config for one action (existing broadcast, no new actions). */
+  private static void notifyBindingChanged(Context context, EventType eventType) {
+    Intent intent = new Intent("LOAD_SHARED_CONFIG_GESTURE");
+    intent.putExtra("configName", eventType.toString());
+    context.sendBroadcast(intent);
+  }
+
+  /**
+   * Build the keycode -> action reverse map from prefs. Shared by the service's runtime map,
+   * the capture dialog's conflict check, and UI labels.
+   */
+  public static HashMap<Integer, EventType> readKeyBindings(SharedPreferences preferences) {
+    HashMap<Integer, EventType> bindings = new HashMap<>();
+    for (EventType eventType : EventType.values()) {
+      if (preferences.getInt(eventType.toString(), PREFERENCE_INT_NOT_FOUND) != KEY_INDEX_IN_UI) {
+        continue;
+      }
+      int keyCode = preferences.getInt(eventType.toString() + KEYCODE_SUFFIX, PREFERENCE_INT_NOT_FOUND);
+      if (keyCode > 0) {
+        bindings.put(keyCode, eventType);
+      }
+    }
+    return bindings;
+  }
+
+  /**
+   * Per-profile list of switch keycodes the user has captured. UI-only: the runtime map derives
+   * from the per-action bindings, so an unassigned switch in this list is inert. Kept as a CSV
+   * pref; reads union in any bound keycodes so bindings never disappear from the picker.
+   */
+  public static final String KNOWN_SWITCH_KEYS_PREF = "known_switch_keys";
+
+  public static List<Integer> readKnownSwitchKeys(SharedPreferences preferences) {
+    List<Integer> keys = new java.util.ArrayList<>();
+    String csv = preferences.getString(KNOWN_SWITCH_KEYS_PREF, "");
+    for (String token : csv.split(",")) {
+      try {
+        int keyCode = Integer.parseInt(token.trim());
+        if (keyCode > 0 && !keys.contains(keyCode)) {
+          keys.add(keyCode);
+        }
+      } catch (NumberFormatException ignored) {
+      }
+    }
+    for (int boundKeyCode : readKeyBindings(preferences).keySet()) {
+      if (!keys.contains(boundKeyCode)) {
+        keys.add(boundKeyCode);
+      }
+    }
+    return keys;
+  }
+
+  static void addKnownSwitchKey(Context context, int keyCode) {
+    SharedPreferences preferences = context.getSharedPreferences(
+        ProfileManager.getCurrentProfile(context), Context.MODE_PRIVATE);
+    List<Integer> keys = readKnownSwitchKeys(preferences);
+    if (!keys.contains(keyCode)) {
+      keys.add(keyCode);
+    }
+    writeKnownSwitchKeys(preferences, keys);
+  }
+
+  static void removeKnownSwitchKey(Context context, int keyCode) {
+    SharedPreferences preferences = context.getSharedPreferences(
+        ProfileManager.getCurrentProfile(context), Context.MODE_PRIVATE);
+    List<Integer> keys = readKnownSwitchKeys(preferences);
+    keys.remove(Integer.valueOf(keyCode));
+    writeKnownSwitchKeys(preferences, keys);
+  }
+
+  private static void writeKnownSwitchKeys(SharedPreferences preferences, List<Integer> keys) {
+    StringBuilder csv = new StringBuilder();
+    for (int keyCode : keys) {
+      if (csv.length() > 0) {
+        csv.append(',');
+      }
+      csv.append(keyCode);
+    }
+    preferences.edit().putString(KNOWN_SWITCH_KEYS_PREF, csv.toString()).apply();
+  }
+
+  /** Keycode bound to this action, or -1 if it isn't key-triggered. */
+  public static int readBoundKeyCode(SharedPreferences preferences, EventType eventType) {
+    if (preferences.getInt(eventType.toString(), PREFERENCE_INT_NOT_FOUND) != KEY_INDEX_IN_UI) {
+      return PREFERENCE_INT_NOT_FOUND;
+    }
+    return preferences.getInt(eventType.toString() + KEYCODE_SUFFIX, PREFERENCE_INT_NOT_FOUND);
+  }
+
+  /**
+   * Get description text of event action type.
+   * @param eventType
+   * @return
+   */
+  public static String getActionDescription(Context context, BlendshapeEventTriggerConfig.EventType eventType) {
+    String[] keys = context.getResources().getStringArray(R.array.event_type_description_keys);
+    String[] values = context.getResources().getStringArray(R.array.event_type_description_keys_values);
+
+    int index = Arrays.asList(keys).indexOf(String.valueOf(eventType));
+    return values[index];
+  }
+
+}

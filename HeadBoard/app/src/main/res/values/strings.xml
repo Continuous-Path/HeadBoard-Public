@@ -1,0 +1,95 @@
+<!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<resources>
+    <string name="app_name">HeadBoard</string>
+
+    <string name="service_description">HeadBoard\’s Accessibility Service</string>
+    <string name="service_summary">Allows headboard to run in the background while you navigate your device.</string>
+    <string name="increase">Increase</string>
+    <string name="decrease">Decrease</string>
+    <string name="faster">Faster</string>
+    <string name="slower">Slower</string>
+
+
+    <string-array name="event_type_description_keys">
+        <item>CURSOR_TAP</item>
+        <item>CONTINUOUS_TOUCH</item>
+        <item>TOGGLE_TOUCH</item>
+        <item>HOME</item>
+        <item>BACK</item>
+        <item>SHOW_NOTIFICATION</item>
+        <item>CURSOR_PAUSE</item>
+        <item>CURSOR_RESET</item>
+        <item>DRAG_TOGGLE</item>
+        <item>SHOW_APPS</item>
+        <item>SWIPE_TOGGLE</item>
+        <item>CURSOR_LONG_TOUCH</item>
+        <item>BEGIN_TOUCH</item>
+        <item>END_TOUCH</item>
+        <item>DELETE_PREVIOUS_WORD</item>
+        <item>SMART_TOUCH</item>
+        <item>JUSTTYPE_SWITCH_1</item>
+        <item>JUSTTYPE_SWITCH_2</item>
+    </string-array>
+
+
+
+    <string-array name="event_type_description_keys_values">
+        <item>Choose an input that will tap on items on your phone, like apps, text, buttons, and more</item>
+        <item>Choose an input that will perform a continuous swipe</item>
+        <item>Choose an input that will perform a toggle swipe</item>
+        <item>Choose an input that will open your phone’s home screen</item>
+        <item>Choose an input that will go back to the last screen</item>
+        <item>Choose an input that will open your notifications</item>
+        <item>Choose an input that will pause or unpause your cursor</item>
+        <item>Choose an input that will reset your cursor position</item>
+        <item>Choose an input that will touch \&amp; hold, otherwise known as a long press, on your phone</item>
+        <item>Choose an input that will open your all apps</item>
+        <item>Choose an input that will toggle a swipe</item>
+        <item>Choose an input that will perform a long touch on your phone</item>
+        <item>Choose an input that will begin a touch</item>
+        <item>Choose an input that will end a touch</item>
+        <item>Remove previous word</item>
+        <item>Choose an input that will perform a combined tap on your phone</item>
+        <item>Choose an input that will press JustType\'s first switch</item>
+        <item>Choose an input that will press JustType\'s second switch</item>
+
+    </string-array>
+
+    <!-- Switch capture assignment -->
+    <string name="switch_key_section_title">Switches</string>
+    <string name="assign_key_prompt">Assign a switch…</string>
+    <string name="clear_key">Remove this switch</string>
+    <string name="key_capture_title">Assign New Switch</string>
+    <string name="press_your_switch">Press your switch now…</string>
+    <!-- Tags are HTML-escaped so they survive getString() with format args; render them
+         with HtmlCompat.fromHtml() at the call site. -->
+    <string name="key_capture_purpose">Press your switch to assign it to &lt;b&gt;“%1$s”&lt;/b&gt;</string>
+    <string name="captured_confirmation">Captured %1$s</string>
+    <string name="reassign_message">&lt;b&gt;&lt;i&gt;‘%1$s’&lt;/i&gt;&lt;/b&gt; is already assigned to &lt;b&gt;“%2$s”&lt;/b&gt;. Move it to &lt;b&gt;“%3$s”&lt;/b&gt;?</string>
+    <string name="move_it_here">Move it here</string>
+    <string name="remove_switch_message">Remove ‘%1$s’ from your switches?</string>
+    <string name="remove_switch_assigned_message">&lt;b&gt;&lt;i&gt;‘%1$s’&lt;/i&gt;&lt;/b&gt; is assigned to &lt;b&gt;“%2$s”&lt;/b&gt;. Remove it and clear that assignment?</string>
+    <string name="remove">Remove</string>
+    <string name="cancel">Cancel</string>
+    <string name="headboard_settings">Go to HeadBoard settings</string>
+    <string name="minimize">Minimize</string>
+    <string name="expand">Expand</string>
+    <string name="paused">Paused</string>
+
+
+</resources>

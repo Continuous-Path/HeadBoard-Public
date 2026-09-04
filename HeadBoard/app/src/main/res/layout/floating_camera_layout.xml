@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:id="@+id/motherLayout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="120dp"
+    android:layout_height="120dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/innerLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:translationZ="90dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewVideo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+        </androidx.camera.view.PreviewView>
+
+        <!-- Pause cover: translucent scrim + badge over the (still live) preview while the
+             service is in PAUSE. Declared before deepSleepOverlay at the same elevation so
+             deep sleep wins if both are up. Non-interactive — touches fall through to the
+             window's drag handling. -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/pauseOverlay"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:translationZ="91dp"
+            android:background="#66000000"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@+id/previewVideo"
+            app:layout_constraintEnd_toEndOf="@+id/previewVideo"
+            app:layout_constraintTop_toTopOf="@+id/previewVideo"
+            app:layout_constraintBottom_toBottomOf="@+id/previewVideo">
+
+            <ImageView
+                android:id="@+id/pauseOverlayIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/set_3_paused"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <TextView
+                android:id="@+id/pauseOverlayLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
+                android:text="@string/paused"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Deep-sleep cover: hides the frozen last preview frame while the camera is
+             unbound. translationZ sits above the preview/overlay (90dp) but below the
+             settings gear (92dp) so settings stay reachable. -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/deepSleepOverlay"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:translationZ="91dp"
+            android:background="#DDDDDD"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@+id/previewVideo"
+            app:layout_constraintEnd_toEndOf="@+id/previewVideo"
+            app:layout_constraintTop_toTopOf="@+id/previewVideo"
+            app:layout_constraintBottom_toBottomOf="@+id/previewVideo">
+
+            <ImageView
+                android:id="@+id/deepSleepIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_sleep_zzz"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <TextView
+                android:id="@+id/deepSleepCountdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
+                android:textColor="#444444"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:text="Resuming in 15s" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <org.continuouspath.headboard.CameraBoxOverlay
+            android:id="@+id/cameraBoxOverlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:translationZ="90dp"
+            app:layout_constraintStart_toStartOf="@+id/previewVideo"
+            app:layout_constraintEnd_toEndOf="@+id/previewVideo"
+            app:layout_constraintBottom_toBottomOf="@+id/previewVideo"
+            app:layout_constraintTop_toTopOf="@+id/previewVideo" />
+
+        <ImageButton
+            android:id="@+id/settingBtn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/baseline_settings_24"
+            android:background="@drawable/floating_btn_bg"
+            android:padding="6dp"
+            android:layout_margin="6dp"
+            android:contentDescription="@string/headboard_settings"
+            android:translationZ="92dp"
+            android:tint="@color/white"
+            app:tint="@color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/popBtn"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_alignParentTop="true"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/minimize"
+            android:scaleType="fitCenter"
+            android:src="@drawable/set_3_arrow"
+            android:background="@null"
+            android:visibility="visible"
+            android:padding="6dp"
+            android:translationZ="92dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Dedicated minimized state: shown instead of innerLayout while minimized, so the
+         minimized icon has its own centered home and never depends on the maximized
+         corner-button geometry. The status icon images are swapped on minimizedIcon. -->
+    <FrameLayout
+        android:id="@+id/minimizedRoot"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:translationZ="90dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/minimizedIcon"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:padding="6dp"
+            android:src="@drawable/set_3_arrow"
+            android:background="@drawable/custom_imagebtn_camera"
+            android:contentDescription="@string/expand" />
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

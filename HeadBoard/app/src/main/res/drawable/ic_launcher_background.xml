@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Field colour of the app icon, as a diagonal gradient sampled from the source art so
+     the adaptive background matches it wherever the launcher's mask happens to cut. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:startColor="#01434E"
+        android:endColor="#003743"
+        android:angle="315" />
+</shape>

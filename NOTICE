@@ -1,0 +1,113 @@
+HeadBoard
+Copyright 2026 Continuous Path Foundation
+
+This product includes software developed by the Continuous Path Foundation,
+a 501(c)(3) nonprofit organization.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+  Project home:  https://github.com/Continuous-Path/HeadBoard
+  Security and licensing contact: security@continuouspath.org
+
+================================================================================
+DERIVED WORK
+================================================================================
+
+HeadBoard is a fork of Project GameFace, published by Google LLC under the
+Apache License 2.0:
+
+  https://github.com/google/project-gameface
+  Copyright 2024 Google LLC
+
+Substantial portions of this codebase originate there and still carry Google's
+copyright headers. The Continuous Path Foundation's changes — the head-tracking
+integration with the JustType keyboard, the OpenBoard-HB integration, the
+cursor and gesture work, and the rebranding — are Copyright 2026 Continuous Path
+Foundation and are likewise licensed under Apache-2.0.
+
+TRADEMARKS. Apache-2.0 Section 6 grants no rights to trade names, trademarks or
+product names. "Google", "Project GameFace" and "MediaPipe" are marks of Google
+LLC, used here only to identify the origin of the code. HeadBoard is not
+affiliated with, endorsed by, or sponsored by Google LLC.
+
+================================================================================
+THIRD-PARTY COMPONENTS
+================================================================================
+
+MediaPipe Tasks Vision 0.10.8 — Apache License 2.0
+  Copyright The MediaPipe Authors / Google LLC
+  https://github.com/google-ai-edge/mediapipe
+  Includes prebuilt native libraries (libmediapipe_tasks_vision_jni.so,
+  libimage_processing_util_jni.so) redistributed inside the APK.
+
+Face Landmarker model bundle — Google LLC
+  app/src/main/assets/face_landmarker.task, distributed by Google with MediaPipe.
+  The bundle contains three TensorFlow Lite models, each with a published model
+  card describing intended use and limitations:
+    face_detector.tflite            BlazeFace (short-range)
+    face_landmarks_detector.tflite  Face Mesh V2
+    face_blendshapes.tflite         Blendshape V2
+  Model cards: https://developers.google.com/mediapipe/solutions/vision/face_landmarker
+
+AndroidX libraries — Apache License 2.0
+  Copyright The Android Open Source Project
+  appcompat, core-ktx, core-splashscreen, constraintlayout, and CameraX
+  (camera-core, camera-camera2, camera-lifecycle, camera-video, camera-view,
+  camera-extensions).
+
+Material Components for Android — Apache License 2.0
+  Copyright Google LLC
+
+Material Design icons — Apache License 2.0
+  Copyright Google LLC
+  The baseline_*_24 and outline_*_24 vector drawables in app/src/main/res/drawable.
+
+Gson — Apache License 2.0
+  Copyright Google Inc.
+
+Kotlin standard library and kotlin-reflect — Apache License 2.0
+  Copyright JetBrains s.r.o.
+
+AutoValue — Apache License 2.0
+  Copyright Google LLC. Build-time annotation processor; not redistributed.
+
+================================================================================
+ARTWORK AND MEDIA
+================================================================================
+
+RETAINED from Project GameFace, Copyright 2024 Google LLC, Apache License 2.0.
+These are illustrations and UI art, not marks, so Apache-2.0 covers their reuse
+and attribution here is the obligation:
+
+  res/raw/tutorial.mp4                      in-app tutorial video
+  res/drawable/phone_holding.xml            hand-holding-phone illustration
+  res/drawable/*.png                        screen illustrations and permission
+                                            art (android_img, first_img, main_img,
+                                            phone_img, splash_img, grant_camera,
+                                            grant_accessibility, grant_overlay,
+                                            icon, keyboard_icon, set_3_*)
+  res/drawable/{eyebrow,mouth,cheek,...}    facial-gesture vector illustrations
+  res/drawable/baseline_*_24.xml,
+      outline_*_24.xml                      Material Design icons
+
+REPLACED with Continuous Path Foundation artwork, licensed Apache-2.0:
+
+  launcher icon (mipmap-*/ic_launcher*)     HeadBoard mark
+  headboard_face, headboard_face_splash     HeadBoard mark
+  home_img                                  HeadBoard mark
+  branding_200x80                           "Continuous Path" wordmark
+
+Google's GameFace face mark and the Google wordmark that was formerly the splash
+branding image have been removed. No Google logo or wordmark ships in this
+application.
+
+================================================================================
+TEST AND BUILD DEPENDENCIES (not redistributed)
+================================================================================
+
+JUnit 4 — Eclipse Public License 1.0
+Robolectric — MIT License
+AndroidX Test — Apache License 2.0
+Gradle and the Android Gradle Plugin — Apache License 2.0
