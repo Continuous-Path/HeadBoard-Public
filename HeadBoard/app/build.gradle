@@ -124,8 +124,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
-    implementation 'androidx.test:core:1.6.1'
-    implementation 'androidx.test.ext:junit:1.2.1'
+    // androidx.test belongs to the test source set only. Shipping it put test code in the
+    // production APK and contributed an INTERNET permission the app does not want.
+    testImplementation 'androidx.test:core:1.6.1'
+    testImplementation 'androidx.test.ext:junit:1.2.1'
     annotationProcessor 'com.google.auto.value:auto-value:latest.release'
     implementation 'androidx.core:core-ktx:1.13.1'
     annotationProcessor 'com.google.auto.value:auto-value:latest.release'

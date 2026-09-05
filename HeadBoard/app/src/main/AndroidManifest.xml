@@ -28,8 +28,13 @@
     <uses-permission android:name="android.permission.ACCESSIBILITY_SETTINGS" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+
+    <!-- MediaPipe pulls in Google's datatransport component, which contributes INTERNET and
+         ACCESS_NETWORK_STATE for usage reporting we neither use nor want. Face landmarking
+         runs entirely offline from the bundled models, so we strip both: the app then has no
+         network capability at all, which is what our privacy policy claims. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <!-- Permissions for communication with OpenBoard IME -->
     <!-- Define permission that OpenBoard can use to send events to HeadBoard -->
