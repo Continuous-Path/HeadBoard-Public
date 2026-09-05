@@ -17,9 +17,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:required="false" />
+    <!-- Bluetooth permissions removed 2026-09: nothing in the app used the Bluetooth APIs.
+         If dedicated Bluetooth switch hardware is added later, re-declare them then — and
+         update the privacy policy, which currently tells users the app has no such access. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
 
